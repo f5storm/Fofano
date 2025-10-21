@@ -297,7 +297,8 @@
                         // Attach the fleeing logic for the dynamically created no-button
                         const noButtonElement = document.getElementById('no-button');
                         if (noButtonElement) {
-                            noButtonElement.addEventListener('mouseover', handleNoButtonHover);
+                            // The new click listener on the body will handle this, so this is not needed.
+                            // noButtonElement.addEventListener('mouseover', handleNoButtonHover);
                         }
                         return; // End the function here for this special path
                     }
@@ -341,7 +342,8 @@
                             // Attach the fleeing logic for the dynamically created no-button
                             const noButtonElement = document.getElementById('no-button');
                             if (noButtonElement) {
-                                noButtonElement.addEventListener('mouseover', handleNoButtonHover);
+                                // The new click listener on the body will handle this, so this is not needed.
+                                // noButtonElement.addEventListener('mouseover', handleNoButtonHover);
                             }
                             return;
                     }
@@ -392,26 +394,24 @@
 
 
             // --- Lógica para o Botão Fujão ---
-            function handleNoButtonHover(e) {
-                const noButton = e.target;
-                const maxX = window.innerWidth - noButton.offsetWidth - 100;
-                const maxY = window.innerHeight - noButton.offsetHeight - 100;
+            document.body.addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'no-button') {
+                    const noButton = e.target;
+                    
+                    // Altera o texto após o primeiro clique
+                    noButton.textContent = 'Tente novamente';
 
-                const randomX = Math.random() * maxX;
-                const randomY = Math.random() * (maxY - 200) + 100; // Evita que vá para o topo
-                
-                noButton.style.position = 'absolute';
-                noButton.style.left = `${randomX}px`;
-                noButton.style.top = `${randomY}px`;
-            }
+                    const maxX = window.innerWidth - noButton.offsetWidth - 100;
+                    const maxY = window.innerHeight - noButton.offsetHeight - 100;
 
-            // Usamos delegação de evento no body para o botão fujão, pois ele é criado dinamicamente
-            // Este listener original não será necessário se o evento for anexado diretamente após a criação.
-            // document.body.addEventListener('mouseover', (e) => {
-            //     if (e.target && e.target.id === 'no-button') {
-            //         handleNoButtonHover(e);
-            //     }
-            // });
+                    const randomX = Math.random() * maxX;
+                    const randomY = Math.random() * (maxY - 200) + 100; // Evita que vá para o topo
+                    
+                    noButton.style.position = 'absolute';
+                    noButton.style.left = `${randomX}px`;
+                    noButton.style.top = `${randomY}px`;
+                }
+            });
 
         });
     </script>
