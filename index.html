@@ -144,7 +144,58 @@
         </footer>
     </main>
 
+    <!-- Reprodutor de Música do YouTube -->
+    <div id="player" style="display: none;"></div>
+
     <script>
+        // Carrega a API do YouTube Player de forma assíncrona.
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        // Esta função é chamada pela API do YouTube quando o código está pronto.
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: '7217Xga4zOw', // ID do vídeo atualizado
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'loop': 1,
+                    'playlist': '7217Xga4zOw', // Necessário para o loop funcionar, ID do vídeo atualizado
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'playsinline': 1 // Essencial para iOS
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        // A API chama esta função quando o player está pronto.
+        function onPlayerReady(event) {
+            event.target.mute(); // Deixa mudo para o autoplay funcionar
+            event.target.playVideo();
+            // Adiciona um listener para tirar o mudo na primeira interação do usuário
+            document.body.addEventListener('click', unmuteOnFirstInteraction, { once: true });
+            document.body.addEventListener('touchstart', unmuteOnFirstInteraction, { once: true });
+        }
+
+        function unmuteOnFirstInteraction() {
+            if (player && typeof player.unMute === 'function') {
+                player.unMute();
+                // Garante que o vídeo toque caso o autoplay inicial tenha sido bloqueado
+                if (player.getPlayerState() !== 1) { // 1 === YT.PlayerState.PLAYING
+                    player.playVideo();
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // --- Script da Tela de Início ---
             const startScreen = document.getElementById('start-screen');
@@ -243,6 +294,11 @@
                         `;
                         plannerButton.style.display = 'block';
                         plannerContent.style.opacity = 1;
+                        // Attach the fleeing logic for the dynamically created no-button
+                        const noButtonElement = document.getElementById('no-button');
+                        if (noButtonElement) {
+                            noButtonElement.addEventListener('mouseover', handleNoButtonHover);
+                        }
                         return; // End the function here for this special path
                     }
 
@@ -282,6 +338,11 @@
                             `;
                             plannerButton.style.display = 'block';
                             plannerContent.style.opacity = 1;
+                            // Attach the fleeing logic for the dynamically created no-button
+                            const noButtonElement = document.getElementById('no-button');
+                            if (noButtonElement) {
+                                noButtonElement.addEventListener('mouseover', handleNoButtonHover);
+                            }
                             return;
                     }
 
@@ -301,12 +362,21 @@
                 if (!e.target.classList.contains('planner-choice')) return;
                 const choice = e.target.dataset.choice;
 
-                switch (plannerState.step) {
-                    case 0: plannerState.choices.activity = choice; break;
-                    case 1: plannerState.choices.day = choice; break;
-                    case 2: plannerState.choices.time = choice; break;
+                // Special handling for "Dormir de tarde no sofá" to skip time selection
+                if (plannerState.step === 0 && choice === 'Dormir de tarde no sofá') {
+                    plannerState.choices.activity = choice;
+                    plannerState.step++; // Move to day selection
+                } else if (plannerState.step === 1 && plannerState.choices.activity === 'Dormir de tarde no sofá') {
+                    plannerState.choices.day = choice;
+                    plannerState.step++; // Move to conclusion (skipping time selection)
+                } else {
+                    switch (plannerState.step) {
+                        case 0: plannerState.choices.activity = choice; break;
+                        case 1: plannerState.choices.day = choice; break;
+                        case 2: plannerState.choices.time = choice; break;
+                    }
+                    plannerState.step++;
                 }
-                plannerState.step++;
                 renderPlanner();
             }
             
@@ -322,21 +392,26 @@
 
 
             // --- Lógica para o Botão Fujão ---
-            // Usamos delegação de evento porque o botão é criado dinamicamente
-            document.body.addEventListener('mouseover', (e) => {
-                if (e.target && e.target.id === 'no-button') {
-                    const noButton = e.target;
-                    const maxX = window.innerWidth - noButton.offsetWidth - 100;
-                    const maxY = window.innerHeight - noButton.offsetHeight - 100;
+            function handleNoButtonHover(e) {
+                const noButton = e.target;
+                const maxX = window.innerWidth - noButton.offsetWidth - 100;
+                const maxY = window.innerHeight - noButton.offsetHeight - 100;
 
-                    const randomX = Math.random() * maxX;
-                    const randomY = Math.random() * (maxY - 200) + 100; // Evita que vá para o topo
-                    
-                    noButton.style.position = 'absolute';
-                    noButton.style.left = `${randomX}px`;
-                    noButton.style.top = `${randomY}px`;
-                }
-            });
+                const randomX = Math.random() * maxX;
+                const randomY = Math.random() * (maxY - 200) + 100; // Evita que vá para o topo
+                
+                noButton.style.position = 'absolute';
+                noButton.style.left = `${randomX}px`;
+                noButton.style.top = `${randomY}px`;
+            }
+
+            // Usamos delegação de evento no body para o botão fujão, pois ele é criado dinamicamente
+            // Este listener original não será necessário se o evento for anexado diretamente após a criação.
+            // document.body.addEventListener('mouseover', (e) => {
+            //     if (e.target && e.target.id === 'no-button') {
+            //         handleNoButtonHover(e);
+            //     }
+            // });
 
         });
     </script>
