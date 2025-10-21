@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uma Intimação para Duda Fofano</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Montserrat&family=Pacifico&family=Playfair+Display&family=Poppins:wght@300;400;600&family=Roboto+Slab&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a2e;
+            overflow-x: hidden;
+        }
+        .font-pacifico {
+            font-family: 'Pacifico', cursive;
+        }
+        h2 {
+            font-family: 'Roboto Slab', serif;
+        }
+        #planner-content, #stalker-response {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+            min-height: 250px;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #stalker-response {
+            min-height: 120px;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite ease-in-out;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-magic {
+            background: linear-gradient(45deg, #f87171, #fb923c, #a78bfa, #c084fc);
+            background-size: 400% 400%;
+            animation: gradient-animation 10s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .fade-in {
+            animation: fadeInAnimation 1s ease-in forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-out {
+            animation: fadeOutAnimation 1s ease-out forwards;
+        }
+        @keyframes fadeOutAnimation {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .planner-choice {
+             background-color: rgba(255, 255, 255, 0.1);
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             transition: background-color 0.3s, transform 0.2s;
+        }
+        .planner-choice:hover {
+            background-color: rgba(192, 132, 252, 0.5); /* Cor roxa com transparência */
+            transform: scale(1.05);
+        }
+        .fade-in-delay-1 { animation-delay: 0.2s; }
+        .fade-in-delay-2 { animation-delay: 0.4s; }
+        .fade-in-delay-3 { animation-delay: 0.6s; }
+    </style>
+</head>
+<body class="text-white">
+
+    <!-- Fundo de estrelas -->
+    <div id="star-background" class="fixed top-0 left-0 w-full h-full -z-10"></div>
+
+    <!-- Tela de Início -->
+    <div id="start-screen" class="fixed top-0 left-0 w-full h-full z-20 flex flex-col items-center justify-center text-center p-4">
+        <header class="mb-8 fade-in">
+            <h1 class="font-pacifico text-4xl md:text-6xl text-purple-300 drop-shadow-lg">A Prova de que Estou Marcando Algo, Duda Fofano</h1>
+            <p class="mt-4 text-lg text-gray-300">(Uma resposta formal à acusação de que eu nunca marco nada)</p>
+        </header>
+        <button id="start-button" class="btn-magic text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg fade-in fade-in-delay-1">
+            Analisar as evidências
+        </button>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <main id="main-content" class="hidden">
+        <div class="container mx-auto px-4 py-12 min-h-screen flex flex-col items-center justify-center">
+
+            <!-- Seção 1: Stalker Simulator -->
+            <section class="w-full max-w-2xl text-center mb-16 fade-in fade-in-delay-1">
+                <div class="card rounded-2xl p-8 shadow-2xl">
+                     <h2 class="text-3xl font-bold mb-4 text-amber-300">Stalker Simulator 2025</h2>
+                     <p class="mb-6">Uma simulação da sua frustrante busca por informações nas minhas redes sociais.</p>
+                     <div class="bg-gray-900 rounded-lg p-4 mb-6 text-left">
+                        <p class="text-lg text-gray-300 mb-4">O que você quer saber nos meus perfis que eu não possa te contar pessoalmente?</p>
+                        <textarea id="stalker-question" rows="2" class="w-full bg-gray-800 text-white p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="Digite sua pergunta aqui..."></textarea>
+                        <button id="stalker-button" class="w-full mt-4 btn-magic text-white font-bold py-2 px-6 rounded-full transition-transform transform hover:scale-105 shadow-lg">
+                            Perguntar (e talvez se arrepender)
+                        </button>
+                        <p id="stalker-response" class="mt-4 text-red-400 text-center"></p>
+                     </div>
+                </div>
+            </section>
+
+            <!-- Seção 2: Planejador de Rolês -->
+            <section class="w-full max-w-2xl text-center mb-16 fade-in fade-in-delay-2">
+                <div class="card rounded-2xl p-8 shadow-2xl">
+                    <h2 class="text-3xl font-bold mb-4 text-pink-300">Planejador de Rolês (Automático)</h2>
+                    <p class="mb-6">O sistema está cruzando todas as possibilidades de encontros. Siga os passos.</p>
+                    <div id="planner-content" class="mb-6 text-green-400"></div>
+                    <button id="planner-button" class="btn-magic text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg" style="display: none;">
+                        Reiniciar Planejamento
+                    </button>
+                </div>
+            </section>
+
+            <!-- Seção 4: Convite Final (Agora é um backup) -->
+            <section class="w-full max-w-2xl text-center fade-in fade-in-delay-3" style="display: none;">
+                <!-- Esta seção foi desativada e substituída pela lógica no planejador -->
+            </section>
+        </div>
+
+        <!-- Rodapé -->
+        <footer class="text-center py-8 text-gray-400 text-sm">
+            <p>Feito por alguém que agora, comprovadamente, marca as coisas.</p>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Script da Tela de Início ---
+            const startScreen = document.getElementById('start-screen');
+            const startButton = document.getElementById('start-button');
+            const mainContent = document.getElementById('main-content');
+
+            startButton.addEventListener('click', () => {
+                startScreen.classList.add('fade-out');
+                startScreen.addEventListener('animationend', () => {
+                    startScreen.style.display = 'none';
+                    mainContent.classList.remove('hidden');
+                }, { once: true });
+            });
+            
+            // --- Script para Fundo de Estrelas ---
+            const starBackground = document.getElementById('star-background');
+            const numStars = 100;
+            for (let i = 0; i < numStars; i++) {
+                let star = document.createElement('div');
+                star.className = 'star';
+                let size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                starBackground.appendChild(star);
+            }
+
+            // --- Seção 1: Stalker Simulator 2025 ---
+            const stalkerButton = document.getElementById('stalker-button');
+            const stalkerResponse = document.getElementById('stalker-response');
+            const stalkerQuestion = document.getElementById('stalker-question');
+            const sarcasticReplies = [
+                "Essa é uma ótima pergunta para se fazer pessoalmente, talvez num rolê que EU vou marcar.",
+                "Essa informação é confidencial. Acesso liberado apenas com um 'sim' para o convite no final da página.",
+                "Seu pedido foi registrado e será ignorado com sucesso. Tente um método de comunicação mais direto, tipo sair comigo.",
+                "Curiosamente, a resposta pra isso não está numa foto de 2018. Que tal descobrir ao vivo?",
+                "Mediante tamanho erro, você vai ter que fazer essa pergunta pessoalmente pra mim."
+            ];
+
+            function showSarcasticReply() {
+                if (stalkerQuestion.value.trim() === "") {
+                     stalkerResponse.textContent = "Você precisa perguntar algo primeiro, né?";
+                     return;
+                }
+                const errorPrefix = "ERRO 73 (que é o 21º número primo e por coincidência também é o dia do seu aniversário): ";
+                const randomIndex = Math.floor(Math.random() * sarcasticReplies.length);
+                const finalReply = errorPrefix + sarcasticReplies[randomIndex];
+
+                stalkerResponse.style.opacity = 0;
+                 setTimeout(() => {
+                    stalkerResponse.textContent = finalReply;
+                    stalkerResponse.style.opacity = 1;
+                    stalkerQuestion.value = "";
+                }, 300);
+            }
+            stalkerButton.addEventListener('click', showSarcasticReply);
+
+
+            // --- Seção 2: Planejador de Rolês ---
+            const plannerContent = document.getElementById('planner-content');
+            const plannerButton = document.getElementById('planner-button');
+            
+            const plannerData = {
+                activities: ['Big-mais gourmet', 'Sushi', 'Sorveteria', 'Açaí', 'Fatto a Mano', 'Cinema', 'Arcade', 'Dormir de tarde no sofá'],
+                days: ['Sexta-feira', 'Sábado', 'Domingo'],
+                times: ['18:00h', '19:00h', '20:00h', '21:00h']
+            };
+
+            let plannerState = {
+                step: 0, // 0: activity, 1: day, 2: time, 3: conclusion
+                choices: { activity: null, day: null, time: null }
+            };
+
+            function renderPlanner() {
+                plannerContent.style.opacity = 0;
+                
+                setTimeout(() => {
+                    // Special check for the sofa route AFTER a day has been chosen
+                    if (plannerState.step === 2 && plannerState.choices.activity === 'Dormir de tarde no sofá') {
+                        const day = plannerState.choices.day;
+                        const encodedText = encodeURIComponent(`Bora ficar só de boa relaxando no sofá na ${day}`);
+                        plannerContent.innerHTML = `
+                            <h3 class='text-lg text-white mb-4'>Plano Perfeito Aprovado!</h3>
+                            <p class='text-xl mb-6'>Isso mesmo, ótima ideia, gostei demais.</p>
+                            <p class='text-white mb-6'>${day} é perfeito pra isso. Aperta o botão verde pra gente combinar.</p>
+                            <div class='flex flex-col sm:flex-row gap-4 justify-center items-center mt-6'>
+                                <a href="https://api.whatsapp.com/send?phone=5533984363259&text=${encodedText}" target="_blank" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg hover:bg-green-400 inline-block w-full sm:w-auto">
+                                    Combinar o Relaxamento
+                                </a>
+                                <button id="no-button" class="bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:bg-red-400 w-full sm:w-auto relative">
+                                    Ainda não estou convencida
+                                </button>
+                            </div>
+                        `;
+                        plannerButton.style.display = 'block';
+                        plannerContent.style.opacity = 1;
+                        return; // End the function here for this special path
+                    }
+
+                    let title = '';
+                    let options = [];
+                    
+                    switch (plannerState.step) {
+                        case 0:
+                            title = "Passo 1: Escolha o rolê ideal...";
+                            options = plannerData.activities;
+                            break;
+                        case 1:
+                            title = `Passo 2: Certo, <span class="text-white">${plannerState.choices.activity}</span>. Agora escolha o dia...`;
+                            options = plannerData.days;
+                            break;
+                        case 2:
+                            title = `Passo 3: <span class="text-white">${plannerState.choices.day}</span> é uma boa. E o horário?`;
+                            options = plannerData.times;
+                            break;
+                        case 3:
+                            const { activity, day, time } = plannerState.choices;
+                            const confirmationText = `Então está combinado: ${activity} na ${day} às ${time}.`;
+                            const encodedTextFinal = encodeURIComponent(`Bora sair! O plano é: ${activity} na ${day} às ${time}.`);
+
+                            plannerContent.innerHTML = `
+                                <h3 class='text-lg text-white mb-4'>Plano Perfeito Gerado!</h3>
+                                <p class='text-xl mb-6'>${confirmationText}</p>
+                                <p class='text-white mb-6'>Só mandar a mensagem pra oficializar.</p>
+                                <div class='flex flex-col sm:flex-row gap-4 justify-center items-center mt-6'>
+                                    <a href="https://api.whatsapp.com/send?phone=5533984363259&text=${encodedTextFinal}" target="_blank" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg hover:bg-green-400 inline-block w-full sm:w-auto">
+                                        Oficializar o Rolê
+                                    </a>
+                                    <button id="no-button" class="bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:bg-red-400 w-full sm:w-auto relative">
+                                        Ainda não estou convencida
+                                    </button>
+                                </div>
+                            `;
+                            plannerButton.style.display = 'block';
+                            plannerContent.style.opacity = 1;
+                            return;
+                    }
+
+                    let htmlContent = `<h3 class='text-lg text-white mb-4'>${title}</h3><div class='flex flex-wrap gap-4 justify-center'>`;
+                    options.forEach(option => {
+                        htmlContent += `<button data-choice="${option}" class="planner-choice text-white font-bold py-2 px-4 rounded-full">${option}</button>`;
+                    });
+                    htmlContent += `</div>`;
+                    
+                    plannerContent.innerHTML = htmlContent;
+                    plannerButton.style.display = 'none';
+                    plannerContent.style.opacity = 1;
+                }, 300);
+            }
+
+            function handlePlannerChoice(e) {
+                if (!e.target.classList.contains('planner-choice')) return;
+                const choice = e.target.dataset.choice;
+
+                switch (plannerState.step) {
+                    case 0: plannerState.choices.activity = choice; break;
+                    case 1: plannerState.choices.day = choice; break;
+                    case 2: plannerState.choices.time = choice; break;
+                }
+                plannerState.step++;
+                renderPlanner();
+            }
+            
+            function resetPlanner() {
+                plannerState.step = 0;
+                plannerState.choices = { activity: null, day: null, time: null };
+                renderPlanner();
+            }
+
+            plannerContent.addEventListener('click', handlePlannerChoice);
+            plannerButton.addEventListener('click', resetPlanner);
+            renderPlanner(); // Inicia o planejador
+
+
+            // --- Lógica para o Botão Fujão ---
+            // Usamos delegação de evento porque o botão é criado dinamicamente
+            document.body.addEventListener('mouseover', (e) => {
+                if (e.target && e.target.id === 'no-button') {
+                    const noButton = e.target;
+                    const maxX = window.innerWidth - noButton.offsetWidth - 100;
+                    const maxY = window.innerHeight - noButton.offsetHeight - 100;
+
+                    const randomX = Math.random() * maxX;
+                    const randomY = Math.random() * (maxY - 200) + 100; // Evita que vá para o topo
+                    
+                    noButton.style.position = 'absolute';
+                    noButton.style.left = `${randomX}px`;
+                    noButton.style.top = `${randomY}px`;
+                }
+            });
+
+        });
+    </script>
+
+</body>
+</html>
+
