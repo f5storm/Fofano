@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Montserrat&family=Pacifico&family=Playfair+Display&family=Poppins:wght@300;400;600&family=Roboto+Slab&family=Source+Code+Pro&display=swap" rel="stylesheet">
     <!-- Font Awesome para o ícone de exclamação --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0pReWSf2o+pkFdgycMh502z+r6u9oX/eB6c+Q4j5v/1x/0iC9p+z+H5sA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Flatpickr (Calendário) CSS --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -147,6 +148,9 @@
     </div>
 
     <!-- Reprodutor de Música do YouTube --><div id="player" style="display: none;"></div>
+    
+    <!-- Flatpickr (Calendário) JS --><script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Flatpickr (Calendário) Tradução Português --><script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 
     <script>
         // Carrega a API do YouTube Player de forma assíncrona.
@@ -288,28 +292,111 @@
             };
 
             let plannerState = {
-                step: 0, // 0: activity choice, 0.5: marathon planning, 1: day, 2: time, 3: conclusion
+                step: 0, 
                 choices: { activity: null, day: null, time: null },
                 isMarathon: false,
-                marathonOrder: [],
-                remainingActivities: []
+                marathonPlan: [],
+                remainingActivities: [],
+                currentMarathonItem: { activity: null, day: null, time: null },
+                planningSubStep: 0, // 0: choose activity, 1: choose day, 2: choose time
             };
 
             function renderPlanner() {
                 plannerContent.style.opacity = 0;
                 
                 setTimeout(() => {
-                    // Special check for the sofa route AFTER a day has been chosen
-                    if (plannerState.step === 2 && plannerState.choices.activity === 'Dormir de tarde no sofá') {
-                        const day = plannerState.choices.day;
-                        const encodedText = encodeURIComponent(`Eu topo sair com você pra relaxar no sofá, no ${day}.`);
+                    let title = '';
+                    let options = [];
+                    let htmlContent = '';
+
+                    if (plannerState.isMarathon) {
+                        if (plannerState.remainingActivities.length > 0) {
+                            switch(plannerState.planningSubStep) {
+                                case 0: // Choose Activity
+                                    title = `Escolha o ${ordinal(plannerState.marathonPlan.length + 1)} rolê da maratona:`;
+                                    options = plannerState.remainingActivities;
+                                    break;
+                                case 1: // Choose Day (Calendar)
+                                    title = `Escolha a data para: <strong class="text-white">${plannerState.currentMarathonItem.activity}</strong>`;
+                                    htmlContent = `<h3 class='text-lg text-white mb-4'>${title}</h3><div class='flex justify-center'><input type="text" id="marathon-datepicker" class="bg-gray-700 text-white p-2 rounded-md text-center cursor-pointer" placeholder="Clique para abrir o calendário..."></div>`;
+                                    break;
+                                case 2: // Choose Time
+                                    title = `Escolha o horário para: <strong class="text-white">${plannerState.currentMarathonItem.activity}</strong> na data <strong class="text-white">${plannerState.currentMarathonItem.day}</strong>`;
+                                    options = plannerData.times;
+                                    break;
+                            }
+                        } else {
+                             // Marathon is fully planned, show conclusion
+                             plannerState.step = 3;
+                        }
+                    } else {
+                         // Single rolê logic
+                         switch (plannerState.step) {
+                            case 0:
+                                title = "Passo 1: Escolha o rolê ideal...";
+                                options = [...plannerData.activities, 'Todas as opções'];
+                                break;
+                            case 1:
+                                title = `Passo 2: Certo, <span class="text-white">${plannerState.choices.activity}</span>. Agora escolha o dia...`;
+                                options = plannerData.days;
+                                break;
+                            case 2:
+                                if (plannerState.choices.activity === 'Dormir de tarde no sofá') {
+                                     // Sofa route conclusion
+                                    const { activity, day } = plannerState.choices;
+                                    const encodedText = encodeURIComponent(`Eu topo sair com você em ${activity}, no ${day}.`);
+                                    plannerContent.innerHTML = `
+                                        <h3 class='text-lg text-white mb-4'>Plano Perfeito Aprovado!</h3>
+                                        <p class='text-xl mb-6'>Isso mesmo, ótima ideia, gostei demais.</p>
+                                        <p class='text-white mb-6'>${day} é perfeito pra isso. Aperta o botão verde pra gente combinar.</p>
+                                        <div class='flex flex-col sm:flex-row gap-4 justify-center items-center mt-6'>
+                                            <a href="https://api.whatsapp.com/send?phone=5533984363259&text=${encodedText}" target="_blank" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg hover:bg-green-400 inline-block w-full sm:w-auto">
+                                                Combinar o Relaxamento
+                                            </a>
+                                            <button id="no-button" class="bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:bg-red-400 w-full sm:w-auto relative">
+                                                Ainda não estou convencida
+                                            </button>
+                                        </div>
+                                    `;
+                                    plannerButton.style.display = 'block';
+                                    plannerContent.style.opacity = 1;
+                                    return; 
+                                }
+                                title = `Passo 3: <span class="text-white">${plannerState.choices.day}</span> é uma boa. E o horário?`;
+                                options = plannerData.times;
+                                break;
+                            case 3: // Conclusion for single rolê
+                                break; // Handled below
+                        }
+                    }
+                    
+                    if (plannerState.step === 3) { // Universal Conclusion
+                        const { day, time } = plannerState.choices;
+                        let confirmationText = '';
+                        let encodedTextFinal = '';
+
+                        if (plannerState.isMarathon) {
+                            const marathonPlanText = plannerState.marathonPlan.map(item => {
+                                const timeText = item.activity === 'Dormir de tarde no sofá' ? '' : ` às ${item.time}`;
+                                return `\n- ${item.activity} (${item.day}${timeText})`;
+                            }).join('');
+                            confirmationText = `<div class="text-left"><strong>Plano da Maratona:</strong><ul class="list-disc list-inside">${plannerState.marathonPlan.map(item => {
+                                const timeText = item.activity === 'Dormir de tarde no sofá' ? '' : ` às ${item.time}`;
+                                return `<li>${item.activity} (${item.day}${timeText})</li>`
+                            }).join('')}</ul></div>`;
+                            encodedTextFinal = encodeURIComponent(`Eu topo a maratona! O plano é esse:${marathonPlanText}`);
+                        } else {
+                            confirmationText = `Então está combinado: ${plannerState.choices.activity} no ${day} às ${time}.`;
+                            encodedTextFinal = encodeURIComponent(`Eu topo sair com você em ${plannerState.choices.activity}, no ${day}, às ${time}.`);
+                        }
+
                         plannerContent.innerHTML = `
-                            <h3 class='text-lg text-white mb-4'>Plano Perfeito Aprovado!</h3>
-                            <p class='text-xl mb-6'>Isso mesmo, ótima ideia, gostei demais.</p>
-                            <p class='text-white mb-6'>${day} é perfeito pra isso. Aperta o botão verde pra gente combinar.</p>
+                            <h3 class='text-lg text-white mb-4'>Plano Perfeito Gerado!</h3>
+                            <div class='text-xl mb-6 text-left'>${confirmationText}</div>
+                            <p class='text-white mb-6'>Só mandar a mensagem pra oficializar.</p>
                             <div class='flex flex-col sm:flex-row gap-4 justify-center items-center mt-6'>
-                                <a href="https://api.whatsapp.com/send?phone=5533984363259&text=${encodedText}" target="_blank" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg hover:bg-green-400 inline-block w-full sm:w-auto">
-                                    Combinar o Relaxamento
+                                <a href="https://api.whatsapp.com/send?phone=5533984363259&text=${encodedTextFinal}" target="_blank" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg hover:bg-green-400 inline-block w-full sm:w-auto">
+                                    Oficializar o Rolê
                                 </a>
                                 <button id="no-button" class="bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:bg-red-400 w-full sm:w-auto relative">
                                     Ainda não estou convencida
@@ -318,73 +405,58 @@
                         `;
                         plannerButton.style.display = 'block';
                         plannerContent.style.opacity = 1;
-                        return; 
+                        return;
                     }
 
-                    let title = '';
-                    let options = [];
-                    
-                    switch (plannerState.step) {
-                        case 0:
-                            title = "Passo 1: Escolha o rolê ideal...";
-                            options = [...plannerData.activities, 'Todas as opções'];
-                            break;
-                        case 0.5: // Marathon planning
-                            const stepTitles = ["Primeiro", "Segundo", "Terceiro", "Quarto", "Quinto", "Sexto", "Sétimo", "Último"];
-                            const currentStepIndex = plannerState.marathonOrder.length;
-                            title = `Maratona - Escolha o <strong>${stepTitles[currentStepIndex]}</strong> rolê:`;
-                            options = plannerState.remainingActivities;
-                            break;
-                        case 1:
-                            title = `Passo 2: Certo, <span class="text-white">${plannerState.isMarathon ? "Maratona Épica" : plannerState.choices.activity}</span>. Agora escolha o dia...`;
-                            options = plannerData.days;
-                            break;
-                        case 2:
-                            title = `Passo 3: <span class="text-white">${plannerState.choices.day}</span> é uma boa. E o horário?`;
-                            options = plannerData.times;
-                            break;
-                        case 3:
-                            const { day, time } = plannerState.choices;
-                            let confirmationText = '';
-                            let encodedTextFinal = '';
-
-                            if (plannerState.isMarathon) {
-                                const marathonPlan = plannerState.marathonOrder.map((item, index) => `${index + 1}º ${item}`).join(', ');
-                                confirmationText = `Plano da Maratona: ${marathonPlan}, começando no ${day} às ${time}.`;
-                                encodedTextFinal = encodeURIComponent(`Eu topo a maratona! O plano é: ${marathonPlan}, começando no ${day} às ${time}.`);
-                            } else {
-                                confirmationText = `Então está combinado: ${plannerState.choices.activity} no ${day} às ${time}.`;
-                                encodedTextFinal = encodeURIComponent(`Eu topo sair com você em ${plannerState.choices.activity}, no ${day}, às ${time}.`);
-                            }
-
-                            plannerContent.innerHTML = `
-                                <h3 class='text-lg text-white mb-4'>Plano Perfeito Gerado!</h3>
-                                <p class='text-xl mb-6'>${confirmationText}</p>
-                                <p class='text-white mb-6'>Só mandar a mensagem pra oficializar.</p>
-                                <div class='flex flex-col sm:flex-row gap-4 justify-center items-center mt-6'>
-                                    <a href="https://api.whatsapp.com/send?phone=5533984363259&text=${encodedTextFinal}" target="_blank" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg hover:bg-green-400 inline-block w-full sm:w-auto">
-                                        Oficializar o Rolê
-                                    </a>
-                                    <button id="no-button" class="bg-red-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:bg-red-400 w-full sm:w-auto relative">
-                                        Ainda não estou convencida
-                                    </button>
-                                </div>
-                            `;
-                            plannerButton.style.display = 'block';
-                            plannerContent.style.opacity = 1;
-                            return;
+                    if (htmlContent === '') {
+                        htmlContent = `<h3 class='text-lg text-white mb-4'>${title}</h3><div class='flex flex-wrap gap-4 justify-center'>`;
+                        options.forEach(option => {
+                            htmlContent += `<button data-choice="${option}" class="planner-choice text-white font-bold py-2 px-4 rounded-full">${option}</button>`;
+                        });
+                        htmlContent += `</div>`;
                     }
-
-                    let htmlContent = `<h3 class='text-lg text-white mb-4'>${title}</h3><div class='flex flex-wrap gap-4 justify-center'>`;
-                    options.forEach(option => {
-                        htmlContent += `<button data-choice="${option}" class="planner-choice text-white font-bold py-2 px-4 rounded-full">${option}</button>`;
-                    });
-                    htmlContent += `</div>`;
                     
                     plannerContent.innerHTML = htmlContent;
                     plannerButton.style.display = 'none';
                     plannerContent.style.opacity = 1;
+                    
+                    if (plannerState.isMarathon && plannerState.planningSubStep === 1) {
+                         const datepicker = document.getElementById('marathon-datepicker');
+                         const fp = flatpickr(datepicker, {
+                            locale: 'pt',
+                            minDate: 'today',
+                            dateFormat: 'd/m/Y',
+                            onClose: function(selectedDates) {
+                                if (selectedDates.length > 0) {
+                                    const selectedDate = selectedDates[0];
+                                    const formattedDate = selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+                                    
+                                    plannerState.currentMarathonItem.day = formattedDate;
+
+                                    if (plannerState.currentMarathonItem.activity === 'Dormir de tarde no sofá') {
+                                        plannerState.currentMarathonItem.time = ''; // Sem horário específico
+                                        plannerState.marathonPlan.push({...plannerState.currentMarathonItem});
+                                        plannerState.remainingActivities = plannerState.remainingActivities.filter(act => act !== plannerState.currentMarathonItem.activity);
+                                        plannerState.currentMarathonItem = { activity: null, day: null, time: null };
+                                        plannerState.planningSubStep = 0; // Volta para escolher a próxima atividade
+                                    } else {
+                                        plannerState.planningSubStep = 2; // Prossegue para escolher o horário
+                                    }
+                                    renderPlanner();
+                                }
+                            }
+                         });
+                         fp.open();
+                    }
+
+
                 }, 300);
+            }
+
+            function ordinal(i) {
+                // Portuguese ordinals
+                const ordinals = ["", "Primeiro", "Segundo", "Terceiro", "Quarto", "Quinto", "Sexto", "Sétimo", "Oitavo"];
+                return ordinals[i] || `${i}º`;
             }
 
             function handlePlannerChoice(e) {
@@ -393,37 +465,47 @@
 
                 if (plannerState.step === 0 && choice === 'Todas as opções') {
                     plannerState.isMarathon = true;
-                    plannerState.marathonOrder = [];
-                    // Exclui a opção "Dormir de tarde no sofá" da maratona para simplificar
-                    plannerState.remainingActivities = plannerData.activities.filter(act => act !== 'Dormir de tarde no sofá');
-                    plannerState.step = 0.5;
+                    plannerState.remainingActivities = [...plannerData.activities];
+                    plannerState.planningSubStep = 0;
                     renderPlanner();
                     return;
                 }
                 
-                if (plannerState.isMarathon && plannerState.step === 0.5) {
-                    plannerState.marathonOrder.push(choice);
-                    plannerState.remainingActivities = plannerState.remainingActivities.filter(act => act !== choice);
-                    
-                    if (plannerState.remainingActivities.length === 0) {
-                        plannerState.step = 1; // All activities chosen, move to day selection
+                if (plannerState.isMarathon) {
+                    switch(plannerState.planningSubStep) {
+                        case 0: // Activity chosen
+                            plannerState.currentMarathonItem.activity = choice;
+                            plannerState.planningSubStep = 1; // Move to day
+                            break;
+                        case 1: // Day chosen (This is now handled by calendar)
+                            // This case should not be reached by button click
+                            break;
+                        case 2: // Time chosen
+                            plannerState.currentMarathonItem.time = choice;
+                            plannerState.marathonPlan.push({...plannerState.currentMarathonItem});
+                            plannerState.remainingActivities = plannerState.remainingActivities.filter(act => act !== plannerState.currentMarathonItem.activity);
+                            plannerState.currentMarathonItem = { activity: null, day: null, time: null };
+                            plannerState.planningSubStep = 0; // Reset for next activity
+                            break;
                     }
                     renderPlanner();
                     return;
                 }
 
-                if (plannerState.step === 0 && choice === 'Dormir de tarde no sofá') {
-                    plannerState.choices.activity = choice;
-                    plannerState.step = 1; 
-                } else if (plannerState.step === 1 && plannerState.choices.activity === 'Dormir de tarde no sofá') {
-                    plannerState.choices.day = choice;
-                    plannerState.step = 2; 
-                } else {
-                    switch (plannerState.step) {
-                        case 0: plannerState.choices.activity = choice; plannerState.step = 1; break;
-                        case 1: plannerState.choices.day = choice; plannerState.step = 2; break;
-                        case 2: plannerState.choices.time = choice; plannerState.step = 3; break;
-                    }
+                // Default single rolê logic
+                switch (plannerState.step) {
+                    case 0: 
+                        plannerState.choices.activity = choice; 
+                        plannerState.step = 1; 
+                        break;
+                    case 1: 
+                        plannerState.choices.day = choice; 
+                        plannerState.step = 2; 
+                        break;
+                    case 2: 
+                        plannerState.choices.time = choice; 
+                        plannerState.step = 3; 
+                        break;
                 }
                 renderPlanner();
             }
@@ -432,8 +514,10 @@
                 plannerState.step = 0;
                 plannerState.choices = { activity: null, day: null, time: null };
                 plannerState.isMarathon = false;
-                plannerState.marathonOrder = [];
+                plannerState.marathonPlan = [];
                 plannerState.remainingActivities = [];
+                plannerState.currentMarathonItem = { activity: null, day: null, time: null };
+                plannerState.planningSubStep = 0;
                 renderPlanner();
             }
 
