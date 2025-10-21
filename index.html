@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Montserrat&family=Pacifico&family=Playfair+Display&family=Poppins:wght@300;400;600&family=Roboto+Slab&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <!-- Font Awesome para o ícone de exclamação --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0pReWSf2o+pkFdgycMh502z+r6u9oX/eB6c+Q4j5v/1x/0iC9p+z+H5sA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -79,15 +80,18 @@
         .fade-in-delay-1 { animation-delay: 0.2s; }
         .fade-in-delay-2 { animation-delay: 0.4s; }
         .fade-in-delay-3 { animation-delay: 0.6s; }
+
+        /* Estilos do Modal de Erro */
+        .error-modal-border {
+            border: 2px solid #ef4444; /* Borda vermelha para erro */
+        }
     </style>
 </head>
 <body class="text-white">
 
-    <!-- Fundo de estrelas -->
-    <div id="star-background" class="fixed top-0 left-0 w-full h-full -z-10"></div>
+    <!-- Fundo de estrelas --><div id="star-background" class="fixed top-0 left-0 w-full h-full -z-10"></div>
 
-    <!-- Tela de Início -->
-    <div id="start-screen" class="fixed top-0 left-0 w-full h-full z-20 flex flex-col items-center justify-center text-center p-4">
+    <!-- Tela de Início --><div id="start-screen" class="fixed top-0 left-0 w-full h-full z-20 flex flex-col items-center justify-center text-center p-4">
         <header class="mb-8 fade-in">
             <h1 class="font-pacifico text-4xl md:text-6xl text-purple-300 drop-shadow-lg">A Prova de que Estou Marcando Algo, Duda Fofano</h1>
             <p class="mt-4 text-lg text-gray-300">(Uma resposta formal à acusação de que eu nunca marco nada)</p>
@@ -97,12 +101,10 @@
         </button>
     </div>
 
-    <!-- Conteúdo Principal -->
-    <main id="main-content" class="hidden">
+    <!-- Conteúdo Principal --><main id="main-content" class="hidden">
         <div class="container mx-auto px-4 py-12 min-h-screen flex flex-col items-center justify-center">
 
-            <!-- Seção 1: Stalker Simulator -->
-            <section class="w-full max-w-2xl text-center mb-16 fade-in fade-in-delay-1">
+            <!-- Seção 1: Stalker Simulator --><section class="w-full max-w-2xl text-center mb-16 fade-in fade-in-delay-1">
                 <div class="card rounded-2xl p-8 shadow-2xl">
                      <h2 class="text-3xl font-bold mb-4 text-amber-300">Stalker Simulator 2025</h2>
                      <p class="mb-6">Uma simulação da sua frustrante busca por informações nas minhas redes sociais.</p>
@@ -116,11 +118,10 @@
                 </div>
             </section>
 
-            <!-- Seção 2: Planejador de Rolês -->
-            <section class="w-full max-w-2xl text-center mb-16 fade-in fade-in-delay-2">
+            <!-- Seção 2: Planejador de Rolês --><section class="w-full max-w-2xl text-center mb-16 fade-in fade-in-delay-2">
                 <div class="card rounded-2xl p-8 shadow-2xl">
                     <h2 class="text-3xl font-bold mb-4 text-pink-300">Planejador de Rolês (Automático)</h2>
-                    <p class="mb-6">O sistema está cruzando todas as possibilidades de encontros. Siga os passos.</p>
+                    <p class="mb-6">se eu sou ruim de marcar algo a tecnologia ajuda..</p>
                     <div id="planner-content" class="mb-6 text-green-400"></div>
                     <button id="planner-button" class="btn-magic text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-110 shadow-lg" style="display: none;">
                         Reiniciar Planejamento
@@ -129,23 +130,23 @@
             </section>
         </div>
 
-        <!-- Rodapé -->
-        <footer class="text-center py-8 text-gray-400 text-sm">
+        <!-- Rodapé --><footer class="text-center py-8 text-gray-400 text-sm">
             <p>Feito por alguém que agora, comprovadamente, marca as coisas.</p>
         </footer>
     </main>
 
-    <!-- Modal Stalker -->
-    <div id="stalker-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 fade-in">
-        <div class="bg-gray-800 border border-purple-500 rounded-2xl shadow-2xl max-w-sm w-full text-center p-6">
-            <h3 id="modal-error-code" class="text-xl font-bold text-red-400 mb-4"></h3>
+    <!-- Modal Stalker --><div id="stalker-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 fade-in">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full text-center p-6 error-modal-border">
+            <div class="flex flex-col items-center mb-4">
+                <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+                <h3 id="modal-error-code" class="text-xl font-bold text-red-400 mb-2"></h3>
+            </div>
             <p id="modal-error-description" class="text-white mb-6"></p>
             <button id="modal-close-button" class="btn-magic text-white font-bold py-2 px-6 rounded-full">Entendido</button>
         </div>
     </div>
 
-    <!-- Reprodutor de Música do YouTube -->
-    <div id="player" style="display: none;"></div>
+    <!-- Reprodutor de Música do YouTube --><div id="player" style="display: none;"></div>
 
     <script>
         // Carrega a API do YouTube Player de forma assíncrona.
@@ -245,7 +246,7 @@
                 if (stalkerQuestion.value.trim() === "") {
                     modalErrorCode.textContent = "Atenção!";
                     modalErrorCode.classList.remove('text-red-400');
-                    modalErrorCode.classList.add('text-amber-300');
+                    modalErrorCode.classList.add('text-amber-300'); // Cor para atenção
                     modalErrorDescription.textContent = "Você precisa perguntar algo primeiro, né?";
                     stalkerModal.classList.remove('hidden');
                     return;
@@ -256,7 +257,7 @@
 
                 modalErrorCode.textContent = errorPrefix;
                 modalErrorCode.classList.add('text-red-400');
-                modalErrorCode.classList.remove('text-amber-300');
+                modalErrorCode.classList.remove('text-amber-300'); // Remove cor de atenção
                 modalErrorDescription.textContent = finalReply;
                 stalkerModal.classList.remove('hidden');
 
@@ -424,4 +425,5 @@
 
 </body>
 </html>
+
 
