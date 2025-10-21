@@ -288,8 +288,11 @@
             };
 
             let plannerState = {
-                step: 0, // 0: activity, 1: day, 2: time, 3: conclusion
-                choices: { activity: null, day: null, time: null }
+                step: 0, // 0: activity choice, 0.5: marathon planning, 1: day, 2: time, 3: conclusion
+                choices: { activity: null, day: null, time: null },
+                isMarathon: false,
+                marathonOrder: [],
+                remainingActivities: []
             };
 
             function renderPlanner() {
@@ -324,10 +327,16 @@
                     switch (plannerState.step) {
                         case 0:
                             title = "Passo 1: Escolha o rolê ideal...";
-                            options = plannerData.activities;
+                            options = [...plannerData.activities, 'Todas as opções'];
+                            break;
+                        case 0.5: // Marathon planning
+                            const stepTitles = ["Primeiro", "Segundo", "Terceiro", "Quarto", "Quinto", "Sexto", "Sétimo", "Último"];
+                            const currentStepIndex = plannerState.marathonOrder.length;
+                            title = `Maratona - Escolha o <strong>${stepTitles[currentStepIndex]}</strong> rolê:`;
+                            options = plannerState.remainingActivities;
                             break;
                         case 1:
-                            title = `Passo 2: Certo, <span class="text-white">${plannerState.choices.activity}</span>. Agora escolha o dia...`;
+                            title = `Passo 2: Certo, <span class="text-white">${plannerState.isMarathon ? "Maratona Épica" : plannerState.choices.activity}</span>. Agora escolha o dia...`;
                             options = plannerData.days;
                             break;
                         case 2:
@@ -335,9 +344,18 @@
                             options = plannerData.times;
                             break;
                         case 3:
-                            const { activity, day, time } = plannerState.choices;
-                            const confirmationText = `Então está combinado: ${activity} no ${day} às ${time}.`;
-                            const encodedTextFinal = encodeURIComponent(`Eu topo sair com você em ${activity}, no ${day}, às ${time}.`);
+                            const { day, time } = plannerState.choices;
+                            let confirmationText = '';
+                            let encodedTextFinal = '';
+
+                            if (plannerState.isMarathon) {
+                                const marathonPlan = plannerState.marathonOrder.map((item, index) => `${index + 1}º ${item}`).join(', ');
+                                confirmationText = `Plano da Maratona: ${marathonPlan}, começando no ${day} às ${time}.`;
+                                encodedTextFinal = encodeURIComponent(`Eu topo a maratona! O plano é: ${marathonPlan}, começando no ${day} às ${time}.`);
+                            } else {
+                                confirmationText = `Então está combinado: ${plannerState.choices.activity} no ${day} às ${time}.`;
+                                encodedTextFinal = encodeURIComponent(`Eu topo sair com você em ${plannerState.choices.activity}, no ${day}, às ${time}.`);
+                            }
 
                             plannerContent.innerHTML = `
                                 <h3 class='text-lg text-white mb-4'>Plano Perfeito Gerado!</h3>
@@ -373,19 +391,39 @@
                 if (!e.target.classList.contains('planner-choice')) return;
                 const choice = e.target.dataset.choice;
 
+                if (plannerState.step === 0 && choice === 'Todas as opções') {
+                    plannerState.isMarathon = true;
+                    plannerState.marathonOrder = [];
+                    // Exclui a opção "Dormir de tarde no sofá" da maratona para simplificar
+                    plannerState.remainingActivities = plannerData.activities.filter(act => act !== 'Dormir de tarde no sofá');
+                    plannerState.step = 0.5;
+                    renderPlanner();
+                    return;
+                }
+                
+                if (plannerState.isMarathon && plannerState.step === 0.5) {
+                    plannerState.marathonOrder.push(choice);
+                    plannerState.remainingActivities = plannerState.remainingActivities.filter(act => act !== choice);
+                    
+                    if (plannerState.remainingActivities.length === 0) {
+                        plannerState.step = 1; // All activities chosen, move to day selection
+                    }
+                    renderPlanner();
+                    return;
+                }
+
                 if (plannerState.step === 0 && choice === 'Dormir de tarde no sofá') {
                     plannerState.choices.activity = choice;
-                    plannerState.step++; 
+                    plannerState.step = 1; 
                 } else if (plannerState.step === 1 && plannerState.choices.activity === 'Dormir de tarde no sofá') {
                     plannerState.choices.day = choice;
-                    plannerState.step++; 
+                    plannerState.step = 2; 
                 } else {
                     switch (plannerState.step) {
-                        case 0: plannerState.choices.activity = choice; break;
-                        case 1: plannerState.choices.day = choice; break;
-                        case 2: plannerState.choices.time = choice; break;
+                        case 0: plannerState.choices.activity = choice; plannerState.step = 1; break;
+                        case 1: plannerState.choices.day = choice; plannerState.step = 2; break;
+                        case 2: plannerState.choices.time = choice; plannerState.step = 3; break;
                     }
-                    plannerState.step++;
                 }
                 renderPlanner();
             }
@@ -393,6 +431,9 @@
             function resetPlanner() {
                 plannerState.step = 0;
                 plannerState.choices = { activity: null, day: null, time: null };
+                plannerState.isMarathon = false;
+                plannerState.marathonOrder = [];
+                plannerState.remainingActivities = [];
                 renderPlanner();
             }
 
@@ -425,5 +466,4 @@
 
 </body>
 </html>
-
 
